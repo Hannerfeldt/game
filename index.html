@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>RPG</title>
+    <meta charset="UTF-8" />
+    <link href="css/main.css" rel="stylesheet" />
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/main.js"></script>
+</head>
+
+<body>
+    <div id="container">
+
+        <div id="map"></div>
+        <div id="stats">
+            <span id="headtxt">head: None</span>
+            <span id="headstats">armor: 0 str:0 agi: 0 int: 0</span>
+            <span id="chesttxt">chest: None</span>
+            <span id="cheststats">armor: 0 str:0 agi: 0 int: 0</span>
+            <span id="weapontxt">weapon: Stick</span>
+            <span id="weapondmg">damage: 2</span>
+            <span id="durtxt">durability: 5</span>
+        </div>
+
+        <div id="content">
+            <div id="buff-container">
+                <div id="buff-one" class="buff">Str</div>
+                <div id="buff-two" class="buff">Agi</div>
+                <div id="buff-three" class="buff">Int</div>
+            </div>
+            <div id="npchealthbar">
+                <span id="npcname"></span>
+                <div id="npchealth"></div>
+                <span id="npchealthtxt"></span>
+            </div>
+            <span id="combo"></span>
+            <span id="time"></span>
+            <div id="power">
+                <div id="marker"></div>
+            </div>
+            <div id="player">
+                <img src="" id="playerhead" />
+                <img src="" id="playerchest" />
+            </div>
+            <div id="spell"></div>
+            <div id="npc">
+                <img src="">
+            </div>
+            <div id="healthbar">
+                <div id="health"></div>
+                <span id="healthtxt">100/100 hp</span>
+            </div>
+            <div id="expbar">
+                <div id="exp"></div>
+            </div>
+            <span id="lvl">lvl: 1</span>
+
+            <div id="playerdmg"><span id="playerdmgtxt"></span></div>
+
+            <div id="npcdmg"> <span id="npcdmgtxt"></span></div>
+
+            <div id="talent-container">
+                <div class="talent one">Str</div>
+                <div class="talent two">Agi</div>
+                <div class="talent three">Int</div>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

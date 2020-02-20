@@ -142,6 +142,30 @@ body {
           background-color: green; }
         body #container #content #buff-container #buff-three {
           background-color: blue; }
+      body #container #content #shop {
+        width: 40vw;
+        background-color: gray;
+        color: black;
+        text-align: center;
+        margin: 0 auto;
+        position: absolute;
+        transform: translateX(-50%);
+        left: 50%;
+        top: 35%;
+        z-index: 500;
+        display: none; }
+        body #container #content #shop ul {
+          list-style: none;
+          font-family: pixel;
+          padding: 0;
+          font-size: 8pt;
+          text-transform: uppercase; }
+          body #container #content #shop ul li {
+            margin: 0;
+            cursor: pointer; }
+          body #container #content #shop ul li:hover {
+            color: red;
+            transform: scale(1.2); }
       body #container #content .leveluptxt {
         font-family: pixel;
         font-size: 50pt;
@@ -325,6 +349,15 @@ body {
         text-transform: uppercase;
         bottom: 0;
         left: 2%;
+        font-family: pixel;
+        color: black; }
+      body #container #content #gold {
+        position: absolute;
+        font-size: 12pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        bottom: 0;
+        right: 1%;
         font-family: pixel;
         color: black; }
       body #container #content #exptxt {

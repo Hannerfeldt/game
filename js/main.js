@@ -1,8 +1,10 @@
+
 $(document).ready(function () {
 
     let northbtn = $('<div>');
     northbtn.insertBefore($('#map'))
         .addClass("button")
+        .attr("id", "northbutton")
         .html("go north")
         .on("click", function () {
             if (you.ypos == 9) {
@@ -10,18 +12,20 @@ $(document).ready(function () {
             }
             else {
                 you.ypos++;
-                you.movePos();
+
                 westbtn.css("display", "none");
                 northbtn.css("display", "none");
                 eastbtn.css("display", "none");
                 southbtn.css("display", "none");
                 $(window).off();
+                you.movePos();
             }
         });
 
     let eastbtn = $('<div>');
     eastbtn.insertBefore($('#map'))
         .addClass("button")
+        .attr("id", "eastbutton")
         .html("go east")
         .on("click", function () {
             if (you.xpos == 9) {
@@ -29,18 +33,20 @@ $(document).ready(function () {
             }
             else {
                 you.xpos++;
-                you.movePos();
+
                 westbtn.css("display", "none");
                 northbtn.css("display", "none");
                 eastbtn.css("display", "none");
                 southbtn.css("display", "none");
                 $(window).off();
+                you.movePos();
             }
         });
 
     let southbtn = $('<div>');
     southbtn.insertBefore($('#map'))
         .addClass("button")
+        .attr("id", "southbutton")
         .html("go south")
         .on("click", function () {
             if (you.ypos == 0) {
@@ -48,18 +54,19 @@ $(document).ready(function () {
             }
             else {
                 you.ypos--;
-                you.movePos();
                 westbtn.css("display", "none");
                 northbtn.css("display", "none");
                 eastbtn.css("display", "none");
                 southbtn.css("display", "none");
                 $(window).off();
+                you.movePos();
             }
         });
 
     let westbtn = $('<div>');
     westbtn.insertBefore($('#map'))
         .addClass("button")
+        .attr("id", "westbutton")
         .html("go west")
         .on("click", function () {
             if (you.xpos == 0) {
@@ -67,12 +74,12 @@ $(document).ready(function () {
             }
             else {
                 you.xpos--;
-                you.movePos();
                 westbtn.css("display", "none");
                 northbtn.css("display", "none");
                 eastbtn.css("display", "none");
                 southbtn.css("display", "none");
                 $(window).off();
+                you.movePos();
             }
         });
 
@@ -159,13 +166,58 @@ $(document).ready(function () {
     let no = $('<div>');
     no.appendTo($('.option'))
         .addClass("no")
+        // nej
         .html("no")
         .on("click", function () {
+            let pos = grid[you.xpos][you.ypos];
+            if (grid[you.xpos][you.ypos].enemy.loot.constructor.name == "Chest" || grid[you.xpos][you.ypos].enemy.loot.constructor.name == "Head") {
+                quality = pos.enemy.loot.armor + pos.enemy.loot.agility + pos.enemy.loot.strength + pos.enemy.loot.intellect;
+                switch (true) {
+                    case (quality < 12):
+                        you.gold += 2
+                        break;
+                    case (quality < 15):
+                        you.gold += 6
+                        break;
+                    case (quality < 23):
+                        you.gold += 10
+                        break;
+                    case (quality < 26):
+                        you.gold += 15
+                        break;
+                    default:
+                        you.gold += 0
+                        break;
+                }
+            }
+            else {
+                quality = pos.enemy.loot.damage + pos.enemy.loot.durability;
+                switch (true) {
+                    case (quality < 35):
+                        you.gold += 3
+                        break;
+                    case (quality < 43):
+                        you.gold += 5
+                        break;
+                    case (quality < 50):
+                        you.gold += 13
+                        break;
+                    case (quality < 59):
+                        you.gold += 19
+                        break;
+                    default:
+                        you.gold += 0
+                        break;
+                }
+            }
             options.css("display", "none");
             westbtn.css("display", "block");
             northbtn.css("display", "block");
             eastbtn.css("display", "block");
             southbtn.css("display", "block");
+
+            $('#gold').html("Gold: " + you.gold)
+
             controlls(you);
         });
 
@@ -297,7 +349,6 @@ $(document).ready(function () {
     ];
 
     let grid = [];
-
     let World = function () {
 
         this.createWorld = function (r) {
@@ -323,344 +374,352 @@ $(document).ready(function () {
                     let loot;
                     maxDisFromSpawn = r * 2 - 1;
 
-                    let u = ((disFromSpawn + 1) / maxDisFromSpawn);
-                    u = Math.round(listOfEnemy.length * u);
-                    u -= 2;
-
-
-                    let rand = (Math.floor(Math.random() * (3 - 0)) + 0) + u;
-
-                    if (rand > 9) {
-                        rand = 9;
+                    if (i == 0 && j == 0) {
+                        let enemy = new Enemy("shopkeeper", 1000, "buy, bitch!")
+                        enemy.health = 1337
+                        let tile = new Tile(h, enemy);
+                        row.push(tile);
                     }
-                    else if (rand < 0) {
-                        rand = 0;
+                    else {
+                        let u = ((disFromSpawn + 1) / maxDisFromSpawn);
+                        u = Math.round(listOfEnemy.length * u);
+                        u -= 2;
+
+
+                        let rand = (Math.floor(Math.random() * (3 - 0)) + 0) + u;
+
+                        if (rand > 9) {
+                            rand = 9;
+                        }
+                        else if (rand < 0) {
+                            rand = 0;
+                        }
+                        let typeOfEnemy = listOfEnemy[rand];
+                        let enemy = new Enemy(typeOfEnemy[0], typeOfEnemy[1], typeOfEnemy[2]);
+
+                        enemy.health = (Math.floor(Math.random() * (10 - 5)) + 5) + (disFromSpawn * 10);
+                        enemy.fullenemyhealth = enemy.health;
+                        let lootType = (Math.floor(Math.random() * (4 - 1)) + 1);
+
+
+
+                        switch (lootType) {
+
+                            case 1:
+
+                                maxDisFromSpawn = r * 2 - 1;
+
+                                chanceTable = listOfWeapon.length / maxDisFromSpawn;
+
+                                chanceTable = chanceTable * (disFromSpawn + 1);
+
+                                chanceTable = Math.round(chanceTable);
+
+                                if (chanceTable <= 0) {
+                                    chanceTable = 1;
+                                }
+
+                                chanceList = [];
+
+                                chance = 1;
+                                divBy = 0;
+                                numerator = 0;
+                                decimal = 0;
+                                d = 0;
+                                if (chanceTable < (listOfWeapon.length - chanceTable) + 1) {
+                                    for (c = -1; c < chanceTable - 1; c++) {
+                                        if (c >= 0) {
+                                            chance = chance + 1 / Math.pow(2, c);
+                                        }
+                                    }
+                                    divBy = listOfWeapon.length - chanceTable;
+                                    divBy = 2 / Math.pow(2, divBy);
+                                    numerator = divBy / Math.pow(2, (chanceTable - 1));
+                                    decimal = numerator / divBy;
+
+                                    chance = chance + decimal;
+
+                                }
+                                else {
+                                    d = listOfWeapon.length - chanceTable;
+                                    for (c = -1; c < d; c++) {
+                                        if (c >= 0) {
+                                            chance = chance + 1 / Math.pow(2, c);
+                                        }
+                                    }
+                                    divBy = chanceTable - 1;
+                                    divBy = 2 / Math.pow(2, divBy);
+
+                                    numerator = divBy / Math.pow(2, (listOfWeapon.length - chanceTable));
+                                    decimal = numerator / divBy;
+                                    chance = chance + decimal;
+
+                                }
+
+
+                                chance = 100 / chance;
+                                total = 0;
+                                for (let o = 0; o < listOfWeapon.length; o++) {
+                                    total += Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
+                                    chanceList[o] = Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
+
+
+
+                                }
+                                extra = 0;
+                                if (total < 100) {
+                                    extra = 100 - total;
+                                    chanceList[chanceTable - 1] += extra;
+                                }
+                                else if (total > 100) {
+                                    extra = total - 100;
+                                    chanceList[chanceTable - 1] -= extra;
+                                }
+
+                                rng = (Math.floor(Math.random() * (100 - 1)) + 1);
+                                for (let k = 0; k < chanceList.length; k++) {
+                                    if (k > 0) {
+                                        chanceList[k] = chanceList[k] + chanceList[k - 1];
+                                    }
+                                    if (rng <= chanceList[k]) {
+
+                                        typeOfLoot = listOfWeapon[k];
+                                        loot = new Weapon(typeOfLoot[0], typeOfLoot[1], typeOfLoot[2]);
+                                        loot.durability = Math.floor(Math.random() * (40 - 20)) + 20;
+                                        enemy.loot = loot;
+                                        k = chanceList.length - 1;
+                                    }
+                                }
+
+                                break;
+                            case 2:
+
+                                maxDisFromSpawn = r * 2 - 1;
+
+                                chanceTable = listOfHead.length / maxDisFromSpawn;
+
+                                chanceTable = chanceTable * (disFromSpawn + 1);
+
+
+                                chanceTable = Math.round(chanceTable);
+
+                                if (chanceTable <= 0) {
+                                    chanceTable = 1;
+                                }
+                                chanceList = [];
+
+
+
+                                chance = 1;
+                                divBy = 0;
+                                numerator = 0;
+                                decimal = 0;
+                                d = 0;
+
+                                if (chanceTable < (listOfHead.length - chanceTable) + 1) {
+                                    for (c = -1; c < chanceTable - 1; c++) {
+                                        if (c >= 0) {
+                                            chance = chance + 1 / Math.pow(2, c);
+                                        }
+                                    }
+                                    divBy = listOfHead.length - chanceTable;
+                                    divBy = 2 / Math.pow(2, divBy);
+                                    numerator = divBy / Math.pow(2, (chanceTable - 1));
+                                    decimal = numerator / divBy;
+
+                                    chance = chance + decimal;
+
+                                }
+                                else {
+                                    d = listOfHead.length - chanceTable;
+                                    for (c = -1; c < d; c++) {
+                                        if (c >= 0) {
+                                            chance = chance + 1 / Math.pow(2, c);
+                                        }
+                                    }
+                                    divBy = chanceTable - 1;
+                                    divBy = 2 / Math.pow(2, divBy);
+
+                                    numerator = divBy / Math.pow(2, (listOfHead.length - chanceTable));
+                                    decimal = numerator / divBy;
+                                    chance = chance + decimal;
+
+                                }
+
+
+                                chance = 100 / chance;
+                                total = 0;
+                                for (let o = 0; o < listOfHead.length; o++) {
+                                    total += Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
+                                    chanceList[o] = Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
+
+                                }
+                                extra = 0;
+                                if (total < 100) {
+                                    extra = 100 - total;
+                                    chanceList[chanceTable - 1] += extra;
+                                }
+                                else if (total > 100) {
+                                    extra = total - 100;
+                                    chanceList[chanceTable - 1] -= extra;
+                                }
+
+                                rng = (Math.floor(Math.random() * (100 - 1)) + 1);
+
+                                for (let k = 0; k < chanceList.length; k++) {
+
+                                    if (k > 0) {
+                                        chanceList[k] = chanceList[k] + chanceList[k - 1];
+
+                                    }
+                                    if (rng <= chanceList[k]) {
+
+                                        typeOfLoot = listOfHead[k];
+                                        loot = new Head(typeOfLoot[0], typeOfLoot[1], typeOfLoot[2]);
+                                        switch (loot.type) {
+                                            case 0:
+                                                loot.agility = Math.round((k * (Math.floor(Math.random() * (3 - 0)) + 0)) / 2);
+                                                loot.strength = Math.round((k * (Math.floor(Math.random() * (3 - 0)) + 0)) / 2);
+                                                loot.intellect = Math.round((k * (Math.floor(Math.random() * (3 - 0)) + 0)) / 2);
+
+                                                break;
+                                            case 1:
+                                                loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.intellect = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
+
+                                                break;
+                                            case 2:
+                                                loot.agility = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
+                                                loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+
+                                                break;
+                                            case 3:
+                                                loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.strength = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
+                                                loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+
+                                                break;
+                                        }
+
+                                        enemy.loot = loot;
+                                        k = chanceList.length - 1;
+                                    }
+                                }
+
+                                break;
+                            case 3:
+
+                                maxDisFromSpawn = r * 2 - 1;
+
+                                chanceTable = listOfChest.length / maxDisFromSpawn;
+
+                                chanceTable = chanceTable * (disFromSpawn + 1);
+
+                                chanceTable = Math.round(chanceTable);
+                                if (chanceTable <= 0) {
+                                    chanceTable = 1;
+                                }
+                                chanceList = [];
+
+                                chance = 1;
+                                divBy = 0;
+                                numerator = 0;
+                                decimal = 0;
+                                d = 0;
+                                if (chanceTable < (listOfChest.length - chanceTable) + 1) {
+                                    for (c = -1; c < chanceTable - 1; c++) {
+                                        if (c >= 0) {
+                                            chance = chance + 1 / Math.pow(2, c);
+                                        }
+                                    }
+                                    divBy = listOfChest.length - chanceTable;
+                                    divBy = 2 / Math.pow(2, divBy);
+                                    numerator = divBy / Math.pow(2, (chanceTable - 1));
+                                    decimal = numerator / divBy;
+
+                                    chance = chance + decimal;
+
+                                }
+                                else {
+                                    d = listOfChest.length - chanceTable;
+                                    for (c = -1; c < d; c++) {
+                                        if (c >= 0) {
+                                            chance = chance + 1 / Math.pow(2, c);
+                                        }
+                                    }
+                                    divBy = chanceTable - 1;
+                                    divBy = 2 / Math.pow(2, divBy);
+                                    numerator = divBy / Math.pow(2, (listOfChest.length - chanceTable));
+                                    decimal = numerator / divBy;
+                                    chance = chance + decimal;
+                                }
+                                chance = 100 / chance;
+                                total = 0;
+                                for (let o = 0; o < listOfChest.length; o++) {
+                                    total += Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
+                                    chanceList[o] = Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
+                                }
+                                extra = 0;
+                                if (total < 100) {
+                                    extra = 100 - total;
+                                    chanceList[chanceTable - 1] += extra;
+                                }
+                                else if (total > 100) {
+                                    extra = total - 100;
+                                    chanceList[chanceTable - 1] -= extra;
+                                }
+
+                                rng = (Math.floor(Math.random() * (100 - 1)) + 1);
+                                for (let k = 0; k < chanceList.length; k++) {
+                                    if (k > 0) {
+                                        chanceList[k] = chanceList[k] + chanceList[k - 1];
+                                    }
+                                    if (rng <= chanceList[k]) {
+
+                                        typeOfLoot = listOfChest[k];
+                                        loot = new Chest(typeOfLoot[0], typeOfLoot[1], typeOfLoot[2]);
+                                        switch (loot.type) {
+                                            case 0:
+                                                loot.agility = Math.round((k * (Math.floor(Math.random() * (3 - 1)) + 1)) / 2);
+                                                loot.strength = Math.round((k * (Math.floor(Math.random() * (3 - 1)) + 1)) / 2);
+                                                loot.intellect = Math.round((k * (Math.floor(Math.random() * (3 - 1)) + 1)) / 2);
+
+                                                break;
+                                            case 1:
+                                                loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.intellect = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
+
+                                                break;
+                                            case 2:
+                                                loot.agility = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
+                                                loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+
+                                                break;
+                                            case 3:
+                                                loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+                                                loot.strength = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
+                                                loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
+
+                                                break;
+                                        }
+                                        enemy.loot = loot;
+                                        k = chanceList.length - 1;
+                                    }
+                                }
+                                break;
+                        }
+
+                        let exp = (Math.floor(Math.random() * (50 - 25)) + 25) * (disFromSpawn + 1);
+                        exp = Math.round(exp);
+                        enemy.expgive = exp;
+                        let tile = new Tile(h, enemy);
+
+                        row.push(tile);
                     }
-                    let typeOfEnemy = listOfEnemy[rand];
-                    let enemy = new Enemy(typeOfEnemy[0], typeOfEnemy[1], typeOfEnemy[2]);
-
-                    enemy.health = (Math.floor(Math.random() * (10 - 5)) + 5) + (disFromSpawn * 10);
-                    enemy.fullenemyhealth = enemy.health;
-                    let lootType = (Math.floor(Math.random() * (4 - 1)) + 1);
-
-
-
-                    switch (lootType) {
-
-                        case 1:
-
-                            maxDisFromSpawn = r * 2 - 1;
-
-                            chanceTable = listOfWeapon.length / maxDisFromSpawn;
-
-                            chanceTable = chanceTable * (disFromSpawn + 1);
-
-                            chanceTable = Math.round(chanceTable);
-
-                            if (chanceTable <= 0) {
-                                chanceTable = 1;
-                            }
-
-                            chanceList = [];
-
-                            chance = 1;
-                            divBy = 0;
-                            numerator = 0;
-                            decimal = 0;
-                            d = 0;
-                            if (chanceTable < (listOfWeapon.length - chanceTable) + 1) {
-                                for (c = -1; c < chanceTable - 1; c++) {
-                                    if (c >= 0) {
-                                        chance = chance + 1 / Math.pow(2, c);
-                                    }
-                                }
-                                divBy = listOfWeapon.length - chanceTable;
-                                divBy = 2 / Math.pow(2, divBy);
-                                numerator = divBy / Math.pow(2, (chanceTable - 1));
-                                decimal = numerator / divBy;
-
-                                chance = chance + decimal;
-
-                            }
-                            else {
-                                d = listOfWeapon.length - chanceTable;
-                                for (c = -1; c < d; c++) {
-                                    if (c >= 0) {
-                                        chance = chance + 1 / Math.pow(2, c);
-                                    }
-                                }
-                                divBy = chanceTable - 1;
-                                divBy = 2 / Math.pow(2, divBy);
-
-                                numerator = divBy / Math.pow(2, (listOfWeapon.length - chanceTable));
-                                decimal = numerator / divBy;
-                                chance = chance + decimal;
-
-                            }
-
-
-                            chance = 100 / chance;
-                            total = 0;
-                            for (let o = 0; o < listOfWeapon.length; o++) {
-                                total += Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
-                                chanceList[o] = Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
-
-
-
-                            }
-                            extra = 0;
-                            if (total < 100) {
-                                extra = 100 - total;
-                                chanceList[chanceTable - 1] += extra;
-                            }
-                            else if (total > 100) {
-                                extra = total - 100;
-                                chanceList[chanceTable - 1] -= extra;
-                            }
-
-                            rng = (Math.floor(Math.random() * (100 - 1)) + 1);
-                            for (let k = 0; k < chanceList.length; k++) {
-                                if (k > 0) {
-                                    chanceList[k] = chanceList[k] + chanceList[k - 1];
-                                }
-                                if (rng <= chanceList[k]) {
-
-                                    typeOfLoot = listOfWeapon[k];
-                                    loot = new Weapon(typeOfLoot[0], typeOfLoot[1], typeOfLoot[2]);
-                                    loot.durability = Math.floor(Math.random() * (40 - 20)) + 20;
-                                    enemy.loot = loot;
-                                    k = chanceList.length - 1;
-                                }
-                            }
-
-                            break;
-                        case 2:
-
-                            maxDisFromSpawn = r * 2 - 1;
-
-                            chanceTable = listOfHead.length / maxDisFromSpawn;
-
-                            chanceTable = chanceTable * (disFromSpawn + 1);
-
-
-                            chanceTable = Math.round(chanceTable);
-
-                            if (chanceTable <= 0) {
-                                chanceTable = 1;
-                            }
-                            chanceList = [];
-
-
-
-                            chance = 1;
-                            divBy = 0;
-                            numerator = 0;
-                            decimal = 0;
-                            d = 0;
-
-                            if (chanceTable < (listOfHead.length - chanceTable) + 1) {
-                                for (c = -1; c < chanceTable - 1; c++) {
-                                    if (c >= 0) {
-                                        chance = chance + 1 / Math.pow(2, c);
-                                    }
-                                }
-                                divBy = listOfHead.length - chanceTable;
-                                divBy = 2 / Math.pow(2, divBy);
-                                numerator = divBy / Math.pow(2, (chanceTable - 1));
-                                decimal = numerator / divBy;
-
-                                chance = chance + decimal;
-
-                            }
-                            else {
-                                d = listOfHead.length - chanceTable;
-                                for (c = -1; c < d; c++) {
-                                    if (c >= 0) {
-                                        chance = chance + 1 / Math.pow(2, c);
-                                    }
-                                }
-                                divBy = chanceTable - 1;
-                                divBy = 2 / Math.pow(2, divBy);
-
-                                numerator = divBy / Math.pow(2, (listOfHead.length - chanceTable));
-                                decimal = numerator / divBy;
-                                chance = chance + decimal;
-
-                            }
-
-
-                            chance = 100 / chance;
-                            total = 0;
-                            for (let o = 0; o < listOfHead.length; o++) {
-                                total += Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
-                                chanceList[o] = Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
-
-                            }
-                            extra = 0;
-                            if (total < 100) {
-                                extra = 100 - total;
-                                chanceList[chanceTable - 1] += extra;
-                            }
-                            else if (total > 100) {
-                                extra = total - 100;
-                                chanceList[chanceTable - 1] -= extra;
-                            }
-
-                            rng = (Math.floor(Math.random() * (100 - 1)) + 1);
-
-                            for (let k = 0; k < chanceList.length; k++) {
-
-                                if (k > 0) {
-                                    chanceList[k] = chanceList[k] + chanceList[k - 1];
-
-                                }
-                                if (rng <= chanceList[k]) {
-
-                                    typeOfLoot = listOfHead[k];
-                                    loot = new Head(typeOfLoot[0], typeOfLoot[1], typeOfLoot[2]);
-                                    switch (loot.type) {
-                                        case 0:
-                                            loot.agility = Math.round((k * (Math.floor(Math.random() * (3 - 0)) + 0)) / 2);
-                                            loot.strength = Math.round((k * (Math.floor(Math.random() * (3 - 0)) + 0)) / 2);
-                                            loot.intellect = Math.round((k * (Math.floor(Math.random() * (3 - 0)) + 0)) / 2);
-
-                                            break;
-                                        case 1:
-                                            loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.intellect = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
-
-                                            break;
-                                        case 2:
-                                            loot.agility = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
-                                            loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-
-                                            break;
-                                        case 3:
-                                            loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.strength = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
-                                            loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-
-                                            break;
-                                    }
-
-                                    enemy.loot = loot;
-                                    k = chanceList.length - 1;
-                                }
-                            }
-
-                            break;
-                        case 3:
-
-                            maxDisFromSpawn = r * 2 - 1;
-
-                            chanceTable = listOfChest.length / maxDisFromSpawn;
-
-                            chanceTable = chanceTable * (disFromSpawn + 1);
-
-                            chanceTable = Math.round(chanceTable);
-                            if (chanceTable <= 0) {
-                                chanceTable = 1;
-                            }
-                            chanceList = [];
-
-                            chance = 1;
-                            divBy = 0;
-                            numerator = 0;
-                            decimal = 0;
-                            d = 0;
-                            if (chanceTable < (listOfChest.length - chanceTable) + 1) {
-                                for (c = -1; c < chanceTable - 1; c++) {
-                                    if (c >= 0) {
-                                        chance = chance + 1 / Math.pow(2, c);
-                                    }
-                                }
-                                divBy = listOfChest.length - chanceTable;
-                                divBy = 2 / Math.pow(2, divBy);
-                                numerator = divBy / Math.pow(2, (chanceTable - 1));
-                                decimal = numerator / divBy;
-
-                                chance = chance + decimal;
-
-                            }
-                            else {
-                                d = listOfChest.length - chanceTable;
-                                for (c = -1; c < d; c++) {
-                                    if (c >= 0) {
-                                        chance = chance + 1 / Math.pow(2, c);
-                                    }
-                                }
-                                divBy = chanceTable - 1;
-                                divBy = 2 / Math.pow(2, divBy);
-                                numerator = divBy / Math.pow(2, (listOfChest.length - chanceTable));
-                                decimal = numerator / divBy;
-                                chance = chance + decimal;
-                            }
-                            chance = 100 / chance;
-                            total = 0;
-                            for (let o = 0; o < listOfChest.length; o++) {
-                                total += Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
-                                chanceList[o] = Math.round(chance / Math.pow(2, Math.abs(chanceTable - (o + 1))));
-                            }
-                            extra = 0;
-                            if (total < 100) {
-                                extra = 100 - total;
-                                chanceList[chanceTable - 1] += extra;
-                            }
-                            else if (total > 100) {
-                                extra = total - 100;
-                                chanceList[chanceTable - 1] -= extra;
-                            }
-
-                            rng = (Math.floor(Math.random() * (100 - 1)) + 1);
-                            for (let k = 0; k < chanceList.length; k++) {
-                                if (k > 0) {
-                                    chanceList[k] = chanceList[k] + chanceList[k - 1];
-                                }
-                                if (rng <= chanceList[k]) {
-
-                                    typeOfLoot = listOfChest[k];
-                                    loot = new Chest(typeOfLoot[0], typeOfLoot[1], typeOfLoot[2]);
-                                    switch (loot.type) {
-                                        case 0:
-                                            loot.agility = Math.round((k * (Math.floor(Math.random() * (3 - 1)) + 1)) / 2);
-                                            loot.strength = Math.round((k * (Math.floor(Math.random() * (3 - 1)) + 1)) / 2);
-                                            loot.intellect = Math.round((k * (Math.floor(Math.random() * (3 - 1)) + 1)) / 2);
-
-                                            break;
-                                        case 1:
-                                            loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.intellect = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
-
-                                            break;
-                                        case 2:
-                                            loot.agility = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
-                                            loot.strength = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-
-                                            break;
-                                        case 3:
-                                            loot.agility = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-                                            loot.strength = (Math.floor(Math.random() * (4 - 0)) + 0) + k;
-                                            loot.intellect = Math.round((k * (Math.floor(Math.random() * (2 - 0)) + 0)) / 2);
-
-                                            break;
-                                    }
-                                    enemy.loot = loot;
-                                    k = chanceList.length - 1;
-                                }
-                            }
-                            break;
-                    }
-
-                    let exp = (Math.floor(Math.random() * (50 - 25)) + 25) * (disFromSpawn + 1);
-                    exp = Math.round(exp);
-                    enemy.expgive = exp;
-                    let tile = new Tile(h, enemy);
-
-                    row.push(tile);
                 }
                 grid.push(row);
             }
@@ -674,29 +733,37 @@ $(document).ready(function () {
     for (y = 0; y < 10; y++) {
         for (x = 0; x < 10; x++) {
             let dot = $('<div>');
+            if (x == 0 && y == 0) {
+                dot.addClass('shop')
+                    .css("grid-column", x + 1)
+                    .css("grid-row", (10 - y))
+                    .appendTo($('#map'));
+            }
+            else {
+                switch (grid[x][y].enemy.loot.constructor.name) {
+                    case "Chest":
+                        dot.addClass('chest ' + x + y)
+                            .css("grid-column", x + 1)
+                            .css("grid-row", (10 - y))
+                            .appendTo($('#map'));
 
-            switch (grid[x][y].enemy.loot.constructor.name) {
-                case "Chest":
-                    dot.addClass('chest ' + x + y)
-                        .css("grid-column", x + 1)
-                        .css("grid-row", (10 - y))
-                        .appendTo($('#map'));
+                        break;
+                    case "Head":
+                        dot.addClass('head ' + x + y)
+                            .css("grid-column", x + 1)
+                            .css("grid-row", (10 - y))
+                            .appendTo($('#map'));
 
-                    break;
-                case "Head":
-                    dot.addClass('head ' + x + y)
-                        .css("grid-column", x + 1)
-                        .css("grid-row", (10 - y))
-                        .appendTo($('#map'));
+                        break;
+                    case "Weapon":
+                        dot.addClass('weapon ' + x + y)
+                            .css("grid-column", x + 1)
+                            .css("grid-row", (10 - y))
+                            .appendTo($('#map'));
 
-                    break;
-                case "Weapon":
-                    dot.addClass('weapon ' + x + y)
-                        .css("grid-column", x + 1)
-                        .css("grid-row", (10 - y))
-                        .appendTo($('#map'));
+                        break;
 
-                    break;
+                }
             }
 
 
@@ -720,6 +787,7 @@ $(document).ready(function () {
         this.chest = { armor: 0, strength: 0, agility: 0, intellect: 0 };
         this.exp = 0;
         this.level = 1;
+        this.gold = 0;
 
         this.armor = 0;
         this.agi = 0;
@@ -745,7 +813,7 @@ $(document).ready(function () {
 
         this.movePos = function () {
             let pos = grid[this.xpos][this.ypos];
-
+            $('#shop').css("display", "none")
             let npc = $('#npc').children()[0];
 
             if (pos.enemy.health > 0) {
@@ -765,13 +833,19 @@ $(document).ready(function () {
                 npc.src = "img/" + pos.enemy.name + "3.png";
                 $('.button')[0].css("display", "block");
             }
+            else if (pos.enemy.name == "shopkeeper") {
+                let shop = $('#shop').css("display", "block")
+                console.log("hejsan")
+                setTimeout(() => { buy(you) }, 100)
+
+
+            }
             else {
                 npc.src = "img/" + pos.enemy.name + "1.png";
                 combat(grid, you);
             }
 
         }
-
         this.levelup = function () {
             console.log("levelup");
             this.exp = this.exp - (this.level * 150);
@@ -1165,7 +1239,7 @@ function drop(pos) {
             default:
                 break;
         }
-    }
+    } // nej
     else if (type.constructor.name == "Head") {
         quality = pos.enemy.loot.armor + pos.enemy.loot.agility + pos.enemy.loot.strength + pos.enemy.loot.intellect;
 
@@ -1213,6 +1287,257 @@ function drop(pos) {
 
 }
 
+function buy(you) {
+    $("#westbutton").css("display", "block");
+    $("#eastbutton").css("display", "block");
+    $("#southbutton").css("display", "block");
+    $("#northbutton").css("display", "block");
+    controlls(you)
+    $('#buy1').on("click", () => {
+        if (you.gold < 50) {
+            return
+        }
+        else {
+            you.gold -= 50;
+            $('#gold').html("gold: " + you.gold)
+            you.armor -= you.head.armor;
+            you.str -= you.head.strength;
+            you.agi -= you.head.agility;
+            you.int -= you.head.intellect;
+            $('#player').children()[0].src = "img/head/pumkin.png";
+            you.head = { armor: 3, strength: 4, agility: 4, intellect: 4 };
+            you.armor += 3;
+            you.str += 4;
+            you.agi += 4;
+            you.int += 4;
+            $('#headtxt').html("head: pumkin");
+            $('#headstats').html("armor: " + 3 +
+                " str: " + 4 +
+                " agi: " + 4 +
+                " int: " + 4);
+            $('#buff-one').html("Str: " + you.str);
+            $('#buff-two').html("Agi: " + you.agi);
+            $('#buff-three').html("Int: " + you.int);
+            if (you.health >= you.maxhealthadd()) {
+                you.health = you.maxhealthadd();
+            }
+            let hpPercent = you.health / you.maxhealthadd();
+            hpPercent = hpPercent * 100;
+            $('#health').css("width", hpPercent + "%");
+            $('#healthtxt').html(you.health + "/" + you.maxhealthadd() + " hp");
+        }
+
+    })
+    $('#buy2').on("click", () => {
+        if (you.gold < 50) {
+            return
+        }
+        else {
+            you.gold -= 50;
+            $('#gold').html("gold: " + you.gold)
+            you.armor -= you.head.armor;
+            you.str -= you.head.strength;
+            you.agi -= you.head.agility;
+            you.int -= you.head.intellect;
+            $('#player').children()[0].src = "img/head/tophat.png";
+            you.head = { armor: 0, strength: 0, agility: 6, intellect: 10 };
+            you.armor += 0;
+            you.str += 0;
+            you.agi += 6;
+            you.int += 10;
+            $('#headtxt').html("head: tophat");
+            $('#headstats').html("armor: " + 0 +
+                " str: " + 0 +
+                " agi: " + 6 +
+                " int: " + 10);
+            $('#buff-one').html("Str: " + you.str);
+            $('#buff-two').html("Agi: " + you.agi);
+            $('#buff-three').html("Int: " + you.int);
+            if (you.health >= you.maxhealthadd()) {
+                you.health = you.maxhealthadd();
+            }
+            let hpPercent = you.health / you.maxhealthadd();
+            hpPercent = hpPercent * 100;
+            $('#health').css("width", hpPercent + "%");
+            $('#healthtxt').html(you.health + "/" + you.maxhealthadd() + " hp");
+        }
+
+    })
+    $('#buy3').on("click", () => {
+        if (you.gold < 50) {
+            return
+        }
+        else {
+            you.gold -= 50;
+            $('#gold').html("gold: " + you.gold)
+            you.armor -= you.head.armor;
+            you.str -= you.head.strength;
+            you.agi -= you.head.agility;
+            you.int -= you.head.intellect;
+            $('#player').children()[0].src = "img/head/executioner.png";
+            you.head = { armor: 0, strength: 10, agility: 6, intellect: 0 };
+            you.armor += 0;
+            you.str += 10;
+            you.agi += 6;
+            you.int += 0;
+            $('#headtxt').html("head: executioner");
+            $('#headstats').html("armor: " + 0 +
+                " str: " + 10 +
+                " agi: " + 6 +
+                " int: " + 0);
+            $('#buff-one').html("Str: " + you.str);
+            $('#buff-two').html("Agi: " + you.agi);
+            $('#buff-three').html("Int: " + you.int);
+            if (you.health >= you.maxhealthadd()) {
+                you.health = you.maxhealthadd();
+            }
+            let hpPercent = you.health / you.maxhealthadd();
+            hpPercent = hpPercent * 100;
+            $('#health').css("width", hpPercent + "%");
+            $('#healthtxt').html(you.health + "/" + you.maxhealthadd() + " hp");
+        }
+
+    })
+    $('#buy4').on("click", () => {
+        if (you.gold < 60) {
+            return
+        }
+        else {
+            you.gold -= 60;
+            $('#gold').html("gold: " + you.gold)
+            you.armor -= you.chest.armor;
+            you.str -= you.chest.strength;
+            you.agi -= you.chest.agility;
+            you.int -= you.chest.intellect;
+            $('#player').children()[0].src = "img/chest/culprit.png";
+            you.chest = { armor: 10, strength: 5, agility: 1, intellect: 1 };
+            you.armor += 10;
+            you.str += 5;
+            you.agi += 1;
+            you.int += 1;
+            $('#headtxt').html("head: culprit");
+            $('#headstats').html("armor: " + 10 +
+                " str: " + 5 +
+                " agi: " + 1 +
+                " int: " + 1);
+            $('#buff-one').html("Str: " + you.str);
+            $('#buff-two').html("Agi: " + you.agi);
+            $('#buff-three').html("Int: " + you.int);
+            if (you.health >= you.maxhealthadd()) {
+                you.health = you.maxhealthadd();
+            }
+            let hpPercent = you.health / you.maxhealthadd();
+            hpPercent = hpPercent * 100;
+            $('#health').css("width", hpPercent + "%");
+            $('#healthtxt').html(you.health + "/" + you.maxhealthadd() + " hp");
+        }
+
+    })
+    $('#buy5').on("click", () => {
+        if (you.gold < 60) {
+            return
+        }
+        else {
+            you.gold -= 60;
+            $('#gold').html("gold: " + you.gold)
+            you.armor -= you.chest.armor;
+            you.str -= you.chest.strength;
+            you.agi -= you.chest.agility;
+            you.int -= you.chest.intellect;
+            $('#player').children()[0].src = "img/chest/eminence.png";
+            you.chest = { armor: 0, strength: 0, agility: 0, intellect: 20 };
+            you.armor += 0;
+            you.str += 0;
+            you.agi += 0;
+            you.int += 20;
+            $('#headtxt').html("head: eminence");
+            $('#headstats').html("armor: " + 0 +
+                " str: " + 0 +
+                " agi: " + 0 +
+                " int: " + 20);
+            $('#buff-one').html("Str: " + you.str);
+            $('#buff-two').html("Agi: " + you.agi);
+            $('#buff-three').html("Int: " + you.int);
+            if (you.health >= you.maxhealthadd()) {
+                you.health = you.maxhealthadd();
+            }
+            let hpPercent = you.health / you.maxhealthadd();
+            hpPercent = hpPercent * 100;
+            $('#health').css("width", hpPercent + "%");
+            $('#healthtxt').html(you.health + "/" + you.maxhealthadd() + " hp");
+        }
+
+    })
+    $('#buy6').on("click", () => {
+        if (you.gold < 60) {
+            return
+        }
+        else {
+            you.gold -= 60;
+            $('#gold').html("gold: " + you.gold)
+            you.armor -= you.chest.armor;
+            you.str -= you.chest.strength;
+            you.agi -= you.chest.agility;
+            you.int -= you.chest.intellect;
+            $('#player').children()[0].src = "img/chest/menace.png";
+            you.chest = { armor: 2, strength: 4, agility: 12, intellect: 2 };
+            you.armor += 2;
+            you.str += 4;
+            you.agi += 12;
+            you.int += 2;
+            $('#headtxt').html("head: menace");
+            $('#headstats').html("armor: " + 2 +
+                " str: " + 4 +
+                " agi: " + 12 +
+                " int: " + 2);
+            $('#buff-one').html("Str: " + you.str);
+            $('#buff-two').html("Agi: " + you.agi);
+            $('#buff-three').html("Int: " + you.int);
+            if (you.health >= you.maxhealthadd()) {
+                you.health = you.maxhealthadd();
+            }
+            let hpPercent = you.health / you.maxhealthadd();
+            hpPercent = hpPercent * 100;
+            $('#health').css("width", hpPercent + "%");
+            $('#healthtxt').html(you.health + "/" + you.maxhealthadd() + " hp");
+        }
+
+    })
+    $('#buy7').on("click", () => {
+        if (you.gold < 75) {
+            return
+        }
+        else {
+            you.gold -= 75;
+            $('#gold').html("gold: " + you.gold)
+
+            you.weapon = { name: "Foresight", damage: 25, durability: 40, magic: 0 };
+            $('#player').css("background-image", "url(img/player/" + you.weapon.name + "/player1.png");
+            $('#weapontxt').html("weapon: " + you.weapon.name);
+
+            $('#weapondmg').html("damage: " + you.weapon.damage);
+            $('#durtxt').html("durabilitiy: " + you.weapon.durability);
+        }
+
+    })
+    $('#buy8').on("click", () => {
+        if (you.gold < 80) {
+            return
+        }
+        else {
+            you.gold -= 80;
+            $('#gold').html("gold: " + you.gold)
+
+            you.weapon = { name: "Omega", damage: 30, durability: 40, magic: 6 };
+            $('#player').css("background-image", "url(img/player/" + you.weapon.name + "/player1.png");
+            $('#weapontxt').html("weapon: " + you.weapon.name);
+
+            $('#weapondmg').html("damage: " + you.weapon.damage);
+            $('#durtxt').html("durabilitiy: " + you.weapon.durability);
+        }
+
+    })
+}
 
 function controlls(you) {
     $(window).on("keydown", function (e) {
